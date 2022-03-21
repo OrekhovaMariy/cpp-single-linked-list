@@ -1,5 +1,9 @@
 #pragma once
 
+#include <utility>
+#include <cassert>
+#include <iterator>
+
 template <typename Type>
 class SingleLinkedList {
     // Узел списка
@@ -14,12 +18,24 @@ class SingleLinkedList {
     };
 
 private:
+
     template<typename T>
-    void copy_elem(const T& values) {
-        for (const auto& v : values) {
-            PushFront(v);
+    void CopiringElement(const T& values) {
+        for (auto v : values) {
+            if (!head_.next_node) {
+                head_.next_node = new Node(v, head_.next_node);
+            }
+            else {
+                Node* last_elem = head_.next_node;
+                while (last_elem->next_node) {
+                    last_elem = last_elem->next_node;
+                }
+                last_elem->next_node = new Node(v, nullptr);
+                
+            }
         }
     }
+
     // Фиктивный узел, используется для вставки "перед первым элементом"
     Node head_;
     size_t size_ = 0;
@@ -93,12 +109,14 @@ public:
         }
 
         BasicIterator& operator++() noexcept {
+            assert(node_ != nullptr);
             node_ = node_->next_node;
             return *this;
         }
 
         BasicIterator operator++(int) noexcept {
             BasicIterator current(node_);
+            assert(node_ != nullptr);
             node_ = node_->next_node;
             return current;
         }
@@ -108,8 +126,8 @@ public:
         }
 
         [[nodiscard]] pointer operator->() const noexcept {
-            if (node_ != nullptr) { return &(node_->value); }
-            return{};
+            assert(node_ != nullptr);
+            return &(node_->value);
         }
 
     private:
@@ -161,6 +179,7 @@ public:
     }
 
     Iterator InsertAfter(ConstIterator pos, const Type& value) {
+        assert(pos.node_ != nullptr);
         if (pos == cbefore_begin()) {
             PushFront(value);
             return Iterator(head_.next_node);
@@ -174,6 +193,8 @@ public:
     }
 
     Iterator EraseAfter(ConstIterator pos) noexcept {
+        assert(!IsEmpty());
+        assert(pos.node_ != nullptr);
         if (pos == cbefore_begin()) {
             PopFront();
             return Iterator(head_.next_node);
@@ -190,29 +211,19 @@ public:
 
 template<typename Type>
 SingleLinkedList<Type>::SingleLinkedList(std::initializer_list<Type> values) {
-    SingleLinkedList tmp_invert;
-    for (auto it : values) {
-        tmp_invert.PushFront(it);
-    }
-    copy_elem(tmp_invert);
+    CopiringElement(values);
     size_ = values.size();
 }
 
 template<typename Type>
 SingleLinkedList<Type>::SingleLinkedList(const SingleLinkedList& other) {
-    SingleLinkedList tmp_invert;
-    for (auto it : other) {
-        tmp_invert.PushFront(it);
-    }
-    copy_elem(tmp_invert);
+    CopiringElement(other);
+    size_ = other.GetSize();
 }
 
 template<typename Type>
 [[nodiscard]] bool SingleLinkedList<Type>::IsEmpty() const noexcept {
-    if (GetSize() == 0) {
-        return true;
-    }
-    return false;
+    return (GetSize() == 0);
 }
 
 template<typename Type>
@@ -234,18 +245,15 @@ void SingleLinkedList<Type>::Clear() noexcept {
 
 template<typename Type>
 void SingleLinkedList<Type>::PopFront() noexcept {
-    if (size_) {
-        Node* del = head_.next_node;
-        head_.next_node = head_.next_node->next_node;
-        delete del;
-        --size_;
-    }
-    else { before_begin() = end(); }
+    assert(!IsEmpty());
+    Node* del = head_.next_node;
+    head_.next_node = head_.next_node->next_node;
+    delete del;
+    --size_;
 }
 
 template<typename Type>
 void SingleLinkedList<Type>::swap(SingleLinkedList& other) noexcept {
-    //if (this != &other) {
     std::swap(head_.next_node, other.head_.next_node);
     std::swap(size_, other.size_);
 }

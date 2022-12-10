@@ -3,6 +3,7 @@
 #include <string>
 #include <utility>
 #include <iterator>
+#include <iostream>
 #include "single-linked-list.h"
 
 // Эта функция тестирует работу SingleLinkedList
@@ -563,4 +564,18 @@ int main() {
     Test2();
     Test3();
     Test4();
+
+    SingleLinkedList<int> lst{ 1, 2, 3, 4 };
+    std::cout << lst.GetSize() << std::endl;
+    auto inserted_item_pos = lst.InsertAfter(lst.begin(), 555);
+    std::cout << std::distance(lst.begin(), inserted_item_pos) << std::endl;
+    lst.PushFront(777);
+    std::cout << lst.GetSize() << " " << * lst.begin() << std::endl;
+    lst.PopFront();
+    std::cout << lst.GetSize() << " " << *lst.begin() << std::endl;
+
+    const auto& const_lst = lst;
+    const auto item_after_erased = lst.EraseAfter(const_lst.cbefore_begin());
+    std::cout << lst.GetSize() << " " << *lst.begin() << std::endl;
+    std::cout << lst.IsEmpty() << std::endl;
 }
